@@ -3,7 +3,22 @@
 import type React from "react";
 
 import { useState } from "react";
-import axios from "axios"; // Add this import
+import axios from "axios";
+// Add this import for multi-select
+import { CheckIcon } from "@radix-ui/react-icons";
+import { cn } from "@/lib/utils";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -26,8 +41,15 @@ import { Textarea } from "@/components/ui/textarea";
 export default function QuestionForm() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
-  const [userType, setUserType] = useState("student");
+  // Change to array for multi-select
+  const [userTypes, setUserTypes] = useState<string[]>(["student"]);
   const [isLoading, setIsLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const userTypeOptions = [
+    { value: "student", label: "Student" },
+    { value: "partner", label: "Partner" },
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +62,8 @@ export default function QuestionForm() {
         {
           question,
           answer,
-          type: userType,
+          // Join the array into a comma-separated string
+          type: userTypes.join(","),
         }
         // {
         //   headers: {
@@ -55,7 +78,7 @@ export default function QuestionForm() {
       );
       setQuestion("");
       setAnswer("");
-      setUserType("student");
+      setUserTypes(["student"]);
     } catch (error: any) {
       console.error("Error submitting form:", error);
       // Handle error with more details (axios error responses are in error.response)
@@ -69,6 +92,17 @@ export default function QuestionForm() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Function to toggle selection of user types
+  const toggleUserType = (value: string) => {
+    setUserTypes((current) => {
+      if (current.includes(value)) {
+        return current.filter((type) => type !== value);
+      } else {
+        return [...current, value];
+      }
+    });
   };
 
   return (
@@ -106,16 +140,50 @@ export default function QuestionForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="userType">User Type</Label>
-              <Select value={userType} onValueChange={setUserType}>
-                <SelectTrigger id="userType">
-                  <SelectValue placeholder="Select your role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="student">Student</SelectItem>
-                  <SelectItem value="partner">Partner</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="userType">User Type (Multi-select)</Label>
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-full justify-between"
+                  >
+                    {userTypes.length > 0
+                      ? userTypes.map(type => 
+                          userTypeOptions.find(option => option.value === type)?.label
+                        ).join(", ")
+                      : "Select user types..."}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search user types..." />
+                    <CommandEmpty>No user type found.</CommandEmpty>
+                    <CommandGroup>
+                      {userTypeOptions.map((option) => (
+                        <CommandItem
+                          key={option.value}
+                          value={option.value}
+                          onSelect={() => {
+                            toggleUserType(option.value);
+                          }}
+                        >
+                          <CheckIcon
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              userTypes.includes(option.value) 
+                                ? "opacity-100" 
+                                : "opacity-0"
+                            )}
+                          />
+                          {option.label}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </CardContent>
 
