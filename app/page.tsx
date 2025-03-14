@@ -140,7 +140,7 @@ export default function QuestionForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="userType">User Type (Multi-select)</Label>
+              <Label htmlFor="userType">Question By (Multi-select)</Label>
               <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -153,7 +153,7 @@ export default function QuestionForm() {
                       ? userTypes.map(type => 
                           userTypeOptions.find(option => option.value === type)?.label
                         ).join(", ")
-                      : "Select user types..."}
+                      : "Select user by..."}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0">
